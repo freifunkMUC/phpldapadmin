@@ -1,0 +1,16 @@
+---
+name: "Package nextcloud"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nextcloud/**'
+  workflow_dispatch: {}
+
+jobs:
+  package:
+    uses: "./.github/workflows/package.yml"
+    with:
+      name: nextcloud
+      path: nextcloud
