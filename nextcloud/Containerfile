@@ -1,0 +1,109 @@
+FROM alpine:3.15
+
+RUN set -ex; \
+    \
+    apk add --no-cache \
+        bzip2 \
+        curl \
+        gnupg \
+        shadow \
+        rsync \
+        ffmpeg \
+        php8 \
+        php8-fpm \
+        php8-bcmath \
+        php8-bz2 \
+        php8-ctype \
+        php8-curl \
+        php8-dom \
+        php8-exif \
+        php8-fileinfo \
+        php8-gd \
+        php8-gmp \
+        php8-iconv \
+        php8-intl \
+        php8-mbstring \
+        php8-opcache \
+        php8-openssl \
+        php8-pcntl \
+        php8-pdo_pgsql \
+        php8-posix \
+        php8-session \
+        php8-simplexml \
+        php8-xml \
+        php8-xmlreader \
+        php8-xmlwriter \
+        php8-zip \
+        php8-pecl-apcu \
+        php8-pecl-memcached \
+        php8-pecl-imagick \
+        php8-pecl-redis; \
+    ln -sf /usr/bin/php8 /usr/bin/php
+
+RUN set -ex; \
+    \
+    mkdir -p /var/www/html; \
+    groupmod -g 101 www-data; \
+    adduser -h /var/www/html -H -s /sbin/nologin -S -u 101 -G www-data www-data
+
+WORKDIR /var/www/html
+
+# set recommended PHP.ini settings
+# see https://docs.nextcloud.com/server/stable/admin_manual/configuration_server/server_tuning.html#enable-php-opcache
+ENV PHP_MEMORY_LIMIT 512M
+ENV PHP_UPLOAD_LIMIT 1024M
+RUN { \
+        echo 'opcache.enable=1'; \
+        echo 'opcache.interned_strings_buffer=64'; \
+        echo 'opcache.max_accelerated_files=10000'; \
+        echo 'opcache.memory_consumption=256'; \
+        echo 'opcache.save_comments=1'; \
+        echo 'opcache.revalidate_freq=60'; \
+    } > /etc/php8/conf.d/opcache-recommended.ini; \
+    \
+    echo 'apc.enable_cli=1' >> /etc/php8/conf.d/php-ext-apcu.ini; \
+    \
+    { \
+        echo 'memory_limit=${PHP_MEMORY_LIMIT}'; \
+        echo 'upload_max_filesize=${PHP_UPLOAD_LIMIT}'; \
+        echo 'post_max_size=${PHP_UPLOAD_LIMIT}'; \
+    } > /etc/php8/conf.d/nextcloud.ini; \
+    \
+    sed -i 's/;catch_workers_output = yes/catch_workers_output = yes/;s/;decorate_workers_output = no/decorate_workers_output = no/' /etc/php8/php-fpm.d/www.conf; \
+    sed -i 's/user = .*/user = www-data/;s/group = .*/group = www-data/' /etc/php8/php-fpm.d/www.conf; \
+    sed -i 's/pm.max_children = .*/pm.max_children = 8/' /etc/php8/php-fpm.d/www.conf; \
+    sed -i 's|;error_log = log/php8/error.log|error_log = /proc/self/fd/2|' /etc/php8/php-fpm.conf; \
+    sed -i 's/;clear_env = .*/clear_env = no/g' /etc/php8/php-fpm.d/www.conf; \
+    rm /var/spool/cron/crontabs/root; \
+    echo '*/5 * * * * php8 -f /var/www/html/cron.php' > /var/spool/cron/crontabs/www-data; \
+    \
+    chown -R www-data:www-data /var/www; \
+    chmod -R g=u /var/www
+
+ENV NEXTCLOUD_VERSION 24.0.4
+
+RUN set -ex; \
+    curl -fsSL -o nextcloud.tar.bz2 \
+        "https://download.nextcloud.com/server/releases/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2"; \
+    curl -fsSL -o nextcloud.tar.bz2.asc \
+        "https://download.nextcloud.com/server/releases/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2.asc"; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    # gpg key from https://nextcloud.com/nextcloud.asc
+    gpg --batch --keyserver keyserver.ubuntu.com  --recv-keys 28806A878AE423A28372792ED75899B9A724937A; \
+    gpg --batch --verify nextcloud.tar.bz2.asc nextcloud.tar.bz2; \
+    mkdir -p /usr/src; \
+    tar -xjf nextcloud.tar.bz2 -C /usr/src/; \
+    gpgconf --kill all; \
+    rm nextcloud.tar.bz2.asc nextcloud.tar.bz2; \
+    rm -rf "$GNUPGHOME" /usr/src/nextcloud/updater; \
+    mkdir -p /usr/src/nextcloud/data; \
+    mkdir -p /usr/src/nextcloud/custom_apps; \
+    chmod +x /usr/src/nextcloud/occ;
+
+COPY entrypoint.sh upgrade.sh upgrade.exclude /
+COPY config/* /usr/src/nextcloud/config/
+
+VOLUME /var/www/html
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["php-fpm8", "-F"]
