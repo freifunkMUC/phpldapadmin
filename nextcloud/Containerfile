@@ -10,6 +10,12 @@ RUN set -ex; \
         shadow \
         rsync \
         ffmpeg \
+        imagemagick \
+        imagemagick-heic \
+        imagemagick-jpeg \
+        imagemagick-svg \
+        imagemagick-tiff \
+        imagemagick-webp \
         php82 \
         php82-fpm \
         php82-bcmath \
