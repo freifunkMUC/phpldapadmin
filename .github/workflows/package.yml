@@ -35,7 +35,7 @@ jobs:
         id: app_version
         run: |
           content=`cat ./${{ inputs.path }}/APP_VERSION`
-          echo "::set-output name=version::$content"
+          echo "version=$content" >> $GITHUB_OUTPUT
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
