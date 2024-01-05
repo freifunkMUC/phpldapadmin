@@ -67,16 +67,16 @@ if [ -n "${REDIS_HOST+x}" ]; then
         # redis.session.lock_wait_time is specified in microseconds.
         # Wait 10ms before retrying the lock rather than the default 2ms.
         echo "redis.session.lock_wait_time = 10000"
-    } > /etc/php8/conf.d/redis-session.ini
+    } > /etc/php82/conf.d/redis-session.ini
 fi
 
 installed_version="0.0.0.0"
 if [ -f /var/www/html/version.php ]; then
     # shellcheck disable=SC2016
-    installed_version="$(php8 -r 'require "/var/www/html/version.php"; echo implode(".", $OC_Version);')"
+    installed_version="$(php82 -r 'require "/var/www/html/version.php"; echo implode(".", $OC_Version);')"
 fi
 # shellcheck disable=SC2016
-image_version="$(php8 -r 'require "/usr/src/nextcloud/version.php"; echo implode(".", $OC_Version);')"
+image_version="$(php82 -r 'require "/usr/src/nextcloud/version.php"; echo implode(".", $OC_Version);')"
 
 if version_greater "$installed_version" "$image_version"; then
     echo "Can't start Nextcloud because the version of the data ($installed_version) is higher than the docker image version ($image_version) and downgrading is not supported. Are you sure you have pulled the newest image version?"
@@ -87,7 +87,7 @@ if version_greater "$image_version" "$installed_version"; then
     echo "Initializing nextcloud $image_version ..."
     if [ "$installed_version" != "0.0.0.0" ]; then
         echo "Upgrading nextcloud from $installed_version ..."
-        run_as 'php8 /var/www/html/occ app:list' | sed -n "/Enabled:/,/Disabled:/p" > /tmp/list_before
+        run_as 'php82 /var/www/html/occ app:list' | sed -n "/Enabled:/,/Disabled:/p" > /tmp/list_before
     fi
     if [ "$(id -u)" = 0 ]; then
         rsync_options="-rlDog --chown www-data:root"
@@ -148,7 +148,7 @@ if version_greater "$image_version" "$installed_version"; then
                 echo "starting nextcloud installation"
                 max_retries=10
                 try=0
-                until run_as "php8 /var/www/html/occ maintenance:install $install_options" || [ "$try" -gt "$max_retries" ]
+                until run_as "php82 /var/www/html/occ maintenance:install $install_options" || [ "$try" -gt "$max_retries" ]
                 do
                     echo "retrying install..."
                     try=$((try+1))
@@ -163,7 +163,7 @@ if version_greater "$image_version" "$installed_version"; then
                     NC_TRUSTED_DOMAIN_IDX=1
                     for DOMAIN in $NEXTCLOUD_TRUSTED_DOMAINS ; do
                         DOMAIN=$(echo "$DOMAIN" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-                        run_as "php8 /var/www/html/occ config:system:set trusted_domains $NC_TRUSTED_DOMAIN_IDX --value=$DOMAIN"
+                        run_as "php82 /var/www/html/occ config:system:set trusted_domains $NC_TRUSTED_DOMAIN_IDX --value=$DOMAIN"
                         NC_TRUSTED_DOMAIN_IDX=$(($NC_TRUSTED_DOMAIN_IDX+1))
                     done
                 fi
@@ -173,9 +173,9 @@ if version_greater "$image_version" "$installed_version"; then
         fi
     #upgrade
     else
-        run_as 'php8 /var/www/html/occ upgrade'
+        run_as 'php82 /var/www/html/occ upgrade'
 
-        run_as 'php8 /var/www/html/occ app:list' | sed -n "/Enabled:/,/Disabled:/p" > /tmp/list_after
+        run_as 'php82 /var/www/html/occ app:list' | sed -n "/Enabled:/,/Disabled:/p" > /tmp/list_after
         echo "The following apps have been disabled:"
         diff /tmp/list_before /tmp/list_after | grep '<' | cut -d- -f2 | cut -d: -f1
         rm -f /tmp/list_before /tmp/list_after
