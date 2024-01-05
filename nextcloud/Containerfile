@@ -1,7 +1,8 @@
 FROM alpine:3.15
 
+ARG APP_VERSION
+
 RUN set -ex; \
-    \
     apk add --no-cache \
         bzip2 \
         curl \
@@ -41,7 +42,6 @@ RUN set -ex; \
     ln -sf /usr/bin/php8 /usr/bin/php
 
 RUN set -ex; \
-    \
     mkdir -p /var/www/html; \
     groupmod -g 101 www-data; \
     adduser -h /var/www/html -H -s /sbin/nologin -S -u 101 -G www-data www-data
@@ -50,8 +50,8 @@ WORKDIR /var/www/html
 
 # set recommended PHP.ini settings
 # see https://docs.nextcloud.com/server/stable/admin_manual/configuration_server/server_tuning.html#enable-php-opcache
-ENV PHP_MEMORY_LIMIT 512M
-ENV PHP_UPLOAD_LIMIT 1024M
+ARG PHP_MEMORY_LIMIT=512M
+ARG PHP_UPLOAD_LIMIT=1024M
 RUN { \
         echo 'opcache.enable=1'; \
         echo 'opcache.interned_strings_buffer=64'; \
@@ -80,7 +80,7 @@ RUN { \
     chown -R www-data:www-data /var/www; \
     chmod -R g=u /var/www
 
-ENV NEXTCLOUD_VERSION 24.0.4
+ENV NEXTCLOUD_VERSION=${APP_VERSION}
 
 RUN set -ex; \
     curl -fsSL -o nextcloud.tar.bz2 \

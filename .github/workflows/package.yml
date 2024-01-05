@@ -31,11 +31,22 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get APP_VERSION
+        id: app_version
+        run: |
+          content=`cat ./${{ inputs.path }}/APP_VERSION`
+          echo "::set-output name=version::$content"
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}/${{ inputs.name }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ steps.app_version.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.app_version.version }}
+            type=semver,pattern={{major}},value=${{ steps.app_version.version }}
+            type=ref,event=branch
+            type=sha
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -50,6 +61,8 @@ jobs:
           context: ${{ inputs.path }}
           file: ${{ inputs.path }}/${{ inputs.containerfile }}
           push: true
+          build-args:
+            - APP_VERSION=${{ steps.app_version.version }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
