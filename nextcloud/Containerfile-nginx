@@ -30,8 +30,6 @@ RUN set -ex; \
     gpgconf --kill all; \
     rm nextcloud.tar.bz2.asc nextcloud.tar.bz2; \
     rm -rf "$GNUPGHOME"; \
-    mkdir -p /var/lib/nginx; \
-    chown -R www-data:www-data /var/lib/nginx; \
     chown -R www-data:www-data /var/www; \
     chmod -R g=u /var/www;
 
@@ -42,6 +40,6 @@ WORKDIR /var/www/nextcloud
 VOLUME /var/www/nextcloud/custom_apps
 VOLUME /var/www/nextcloud/themes
 
-USER 101:101
+USER 100:101
 
 CMD ["nginx", "-c", "/etc/nginx/nginx.conf"]
