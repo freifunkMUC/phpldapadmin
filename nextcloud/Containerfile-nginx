@@ -1,0 +1,45 @@
+FROM alpine:3.19
+
+ARG APP_VERSION
+
+RUN set -ex; \
+    apk add --no-cache \
+        bzip2 \
+        curl \
+        gnupg \
+        nginx \
+        shadow
+
+RUN set -ex; \
+    mkdir -p /var/www/nextcloud; \
+    groupmod -g 101 -o www-data; \
+    adduser -h /var/www/nextcloud -H -s /sbin/nologin -S -u 101 -G www-data www-data
+
+ENV NEXTCLOUD_VERSION=${APP_VERSION}
+
+RUN set -ex; \
+    curl -fsSL -o nextcloud.tar.bz2 \
+        "https://download.nextcloud.com/server/releases/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2"; \
+    curl -fsSL -o nextcloud.tar.bz2.asc \
+        "https://download.nextcloud.com/server/releases/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2.asc"; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    # gpg key from https://nextcloud.com/nextcloud.asc
+    gpg --batch --keyserver keyserver.ubuntu.com  --recv-keys 28806A878AE423A28372792ED75899B9A724937A; \
+    gpg --batch --verify nextcloud.tar.bz2.asc nextcloud.tar.bz2; \
+    tar -xjf nextcloud.tar.bz2 -C /var/www/; \
+    gpgconf --kill all; \
+    rm nextcloud.tar.bz2.asc nextcloud.tar.bz2; \
+    rm -rf "$GNUPGHOME"; \
+    chown -R www-data:www-data /var/www; \
+    chmod -R g=u /var/www;
+
+ADD nginx.conf /etc/nginx/nginx.conf
+
+WORKDIR /var/www/nextcloud
+
+VOLUME /var/www/nextcloud/custom_apps
+VOLUME /var/www/nextcloud/themes
+
+USER 101:101
+
+CMD ["nginx", "-c", "/etc/nginx/nginx.conf"]

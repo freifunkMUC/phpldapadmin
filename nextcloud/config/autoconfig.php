@@ -2,6 +2,14 @@
 
 $autoconfig_enabled = false;
 
+if (getenv('NEXTCLOUD_ADMIN_USER_FILE') && getenv('NEXTCLOUD_ADMIN_PASSWORD_FILE')) {
+    $AUTOCONFIG['adminlogin'] = trim(file_get_contents(getenv('NEXTCLOUD_ADMIN_USER_FILE')));
+    $AUTOCONFIG['adminpass'] = trim(file_get_contents(getenv('NEXTCLOUD_ADMIN_PASSWORD_FILE')));
+} elseif (getenv('NEXTCLOUD_ADMIN_USER') && getenv('NEXTCLOUD_ADMIN_PASSWORD')) {
+    $AUTOCONFIG['adminlogin'] = getenv('NEXTCLOUD_ADMIN_USER');
+    $AUTOCONFIG['adminpass'] = getenv('NEXTCLOUD_ADMIN_PASSWORD');
+}
+
 if (getenv('SQLITE_DATABASE')) {
     $AUTOCONFIG['dbtype'] = 'sqlite';
     $AUTOCONFIG['dbname'] = getenv('SQLITE_DATABASE');
@@ -37,5 +45,5 @@ if (getenv('SQLITE_DATABASE')) {
 }
 
 if ($autoconfig_enabled) {
-    $AUTOCONFIG['directory'] = getenv('NEXTCLOUD_DATA_DIR') ?: '/var/www/html/data';
+    $AUTOCONFIG['directory'] = getenv('NEXTCLOUD_DATA_DIR') ?: '/var/www/nextcloud/data';
 }

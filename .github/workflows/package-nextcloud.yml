@@ -4,13 +4,21 @@ on:
   push:
     branches:
       - main
+      - test
+      - dev
     paths:
       - 'nextcloud/**'
   workflow_dispatch: {}
 
 jobs:
-  package:
+  package-nextcloud:
     uses: "./.github/workflows/package.yml"
     with:
       name: nextcloud
+      path: nextcloud
+  package-nginx:
+    uses: "./.github/workflows/package.yml"
+    with:
+      name: nextcloud
+      file: Containerfile-nginx
       path: nextcloud
