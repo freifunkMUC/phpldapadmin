@@ -8,21 +8,21 @@ RUN set -ex; \
         curl \
         shadow \
         util-linux \
-        php82 \
-        php82-apache2 \
-        php82-ldap \
-        php82-gettext \
-        php82-mbstring \
-        php82-opcache \
-        php82-openssl \
-        php82-session \
-        php82-xml \
-        php82-pecl-apcu \
+        php81 \
+        php81-apache2 \
+        php81-ldap \
+        php81-gettext \
+        php81-mbstring \
+        php81-opcache \
+        php81-openssl \
+        php81-session \
+        php81-xml \
+        php81-pecl-apcu \
     rm -f /etc/apache2/conf.d/info.conf; \
     rm -f /etc/apache2/conf.d/userdir.conf; \
-    ln -sf /usr/bin/php82 /usr/bin/php;
+    ln -sf /usr/bin/php81 /usr/bin/php;
 
-COPY php.conf.d/ /etc/php82/conf.d/
+COPY php.conf.d/ /etc/php81/conf.d/
 COPY apache2.conf.d/ /etc/apache2/conf.d/
 
 RUN set -ex; \
