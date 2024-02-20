@@ -9,6 +9,7 @@ RUN set -ex; \
         gnupg \
         shadow \
         rsync \
+        util-linux \
         ffmpeg \
         imagemagick \
         imagemagick-heic \

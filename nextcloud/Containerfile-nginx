@@ -8,6 +8,7 @@ RUN set -ex; \
         curl \
         gnupg \
         nginx \
+        util-linux \
         shadow
 
 RUN set -ex; \
