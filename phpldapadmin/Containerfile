@@ -1,0 +1,43 @@
+FROM alpine:3.19
+
+ARG APP_VERSION
+
+RUN set -ex; \
+    apk add --no-cache \
+        apache2 \
+        curl \
+        shadow \
+        util-linux \
+        php82 \
+        php82-apache2 \
+        php82-ldap \
+        php82-gettext \
+        php82-mbstring \
+        php82-opcache \
+        php82-openssl \
+        php82-session \
+        php82-xml \
+        php82-pecl-apcu \
+    rm -f /etc/apache2/conf.d/info.conf; \
+    rm -f /etc/apache2/conf.d/userdir.conf; \
+    ln -sf /usr/bin/php82 /usr/bin/php;
+
+COPY php.conf.d/ /etc/php82/conf.d/
+COPY apache2.conf.d/ /etc/apache2/conf.d/
+
+RUN set -ex; \
+    sed -i -e 's|^#\(LoadModule remoteip_module.*\)|\1|' /etc/apache2/httpd.conf
+
+RUN set -ex; \
+    curl -fsSL -o "phpLDAPadmin-${APP_VERSION}.tar.gz" \
+        "https://github.com/leenooks/phpLDAPadmin/archive/${APP_VERSION}.tar.gz"; \
+    mkdir -p /var/www/phpldapadmin; \
+    tar -xzf "phpLDAPadmin-${APP_VERSION}.tar.gz" --strip-components=1 -C /var/www/phpldapadmin; \
+    rm "phpLDAPadmin-${APP_VERSION}.tar.gz";
+
+COPY entrypoint.sh /
+
+STOPSIGNAL SIGWINCH
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["httpd", "-DFOREGROUND"]
