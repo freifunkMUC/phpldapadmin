@@ -17,7 +17,7 @@ RUN set -ex; \
         php81-openssl \
         php81-session \
         php81-xml \
-        php81-pecl-apcu \
+        php81-pecl-apcu; \
     rm -f /etc/apache2/conf.d/info.conf; \
     rm -f /etc/apache2/conf.d/userdir.conf; \
     ln -sf /usr/bin/php81 /usr/bin/php;
