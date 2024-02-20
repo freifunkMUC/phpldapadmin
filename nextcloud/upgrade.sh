@@ -27,7 +27,7 @@ if [ "$config_version" = "0.0.0.0" ]; then
 #upgrade
 elif [ "$app_version" != "$config_version" ]; then
     echo "Upgrading nextcloud from $config_version ..."
-    run_as "php /var/www/nextcloud/occ upgrade"
+    run_as "php /var/www/nextcloud/occ upgrade -vv"
 fi
 
 exit 0
