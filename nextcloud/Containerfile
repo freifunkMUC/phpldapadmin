@@ -38,6 +38,7 @@ RUN set -ex; \
         php82-posix \
         php82-session \
         php82-simplexml \
+        php82-sodium \
         php82-sysvsem \
         php82-xml \
         php82-xmlreader \
