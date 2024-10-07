@@ -8,6 +8,7 @@ RUN set -ex; \
         curl \
         gnupg \
         nginx \
+        nginx-mod-http-brotli \
         util-linux \
         shadow
 
