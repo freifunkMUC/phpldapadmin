@@ -60,4 +60,4 @@ jobs:
           build-args: |
             VERSION=${{ github.head_ref || github.ref_name }}
             COMMIT=${{ github.sha }}
-            APP_VERSION=${{ env.APP_VERSION }} # Pass the APP_VERSION from the file
+            APP_VERSION=${{ env.APP_VERSION }}
