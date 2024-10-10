@@ -32,6 +32,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
             org.opencontainers.image.authors=${{ env.AUTHOR }}
+      - name: Read APP_VERSION from file
+        id: app_version
+        run: echo "APP_VERSION=$(cat APP_VERSION)" >> $GITHUB_ENV
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
