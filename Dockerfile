@@ -3,7 +3,7 @@ FROM alpine:3.19
 # Argument for the app version
 ARG APP_VERSION
 
-# Install all required packages and configure Apache and PHP
+# Install required packages
 RUN set -ex; \
     apk add --no-cache \
         apache2 \
@@ -21,16 +21,11 @@ RUN set -ex; \
         php81-xml \
         php81-pecl-apcu; \
     \
-    # Remove unnecessary Apache configuration files
     rm -f /etc/apache2/conf.d/info.conf /etc/apache2/conf.d/userdir.conf; \
-    \
-    # Create symlink for PHP
     ln -sf /usr/bin/php81 /usr/bin/php; \
-    \
-    # Enable the remoteip_module in Apache configuration
     sed -i -e 's|^#\(LoadModule remoteip_module.*\)|\1|' /etc/apache2/httpd.conf
 
-# Copy PHP and Apache configuration files
+# Copy configuration files
 COPY php.conf.d/ /etc/php81/conf.d/
 COPY apache2.conf.d/ /etc/apache2/conf.d/
 
@@ -42,12 +37,15 @@ RUN set -ex; \
     tar -xzf "phpLDAPadmin-${APP_VERSION}.tar.gz" --strip-components=1 -C /var/www/phpldapadmin; \
     rm "phpLDAPadmin-${APP_VERSION}.tar.gz"
 
-# Copy the entrypoint script
+# Copy entrypoint script
 COPY entrypoint.sh /
+
+# Set execute permission on entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Signal for proper container stop handling
 STOPSIGNAL SIGWINCH
 
-# Set the entrypoint script and Apache start command
+# Set entrypoint and start Apache
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["httpd", "-DFOREGROUND"]
