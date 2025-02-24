@@ -1,4 +1,4 @@
-FROM alpine:3.19.6
+FROM alpine:3.19.7
 
 # Argument for the app version
 ARG APP_VERSION
