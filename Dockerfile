@@ -34,10 +34,6 @@ COPY apache2.conf.d/ /etc/apache2/conf.d/
 # Copy phpLDAPadmin files from the builder stage
 COPY --from=builder /phpldapadmin /var/www/phpldapadmin
 
-# Copy and prepare entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 # Use SIGTERM as the stop signal for Apache-based containers
 STOPSIGNAL SIGTERM
 # Use 'httpd -DFOREGROUND' to keep Apache running in the foreground as recommended for Alpine-based containers
