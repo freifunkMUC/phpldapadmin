@@ -1,4 +1,4 @@
-FROM alpine:3.19.7 AS builder
+FROM alpine:3.19.8 AS builder
 
 ARG APP_VERSION=1.2.6.7
 
